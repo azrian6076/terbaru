@@ -1,7 +1,7 @@
 import React from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import Login from './pages/Login';
-import Register from './pages/Register'; // ✅ Tambahkan
+import Register from './pages/Register';
 import AuthLayout from './layouts/AuthLayout';
 import DashboardLayout from './layouts/DashboardLayout';
 import StudentDashboard from './pages/student/Dashboard';
@@ -21,6 +21,7 @@ import RekomendasiAktif from './pages/lecturer/rekomendasiaktif';
 import AjakanKolaborasi from './pages/lecturer/ajakankolaborasi';
 import UpdateBimbingan from './pages/lecturer/updatebimbingan';
 import PemetaanTalenta from './pages/prodi/pemetaantalenta';
+import ProtectedRoute from './ProtectedRoute';
 
 function App() {
   return (
@@ -29,26 +30,19 @@ function App() {
         <Routes>
           <Route path="/" element={<Navigate to="/login" />} />
           
-          {/* ✅ Auth routes */}
-          <Route
-            path="/login"
-            element={
-              <AuthLayout>
-                <Login />
-              </AuthLayout>
-            }
-          />
-          <Route
-            path="/register"
-            element={
-              <AuthLayout>
-                <Register />
-              </AuthLayout>
-            }
-          />
+          {/* Auth routes */}
+          <Route path="/login" element={<AuthLayout><Login /></AuthLayout>} />
+          <Route path="/register" element={<AuthLayout><Register /></AuthLayout>} />
 
-          {/* ✅ Student */}
-          <Route path="/student" element={<DashboardLayout role="student" />}>
+          {/* Student */}
+          <Route
+            path="/student"
+            element={
+              <ProtectedRoute role="student">
+                <DashboardLayout role="student" />
+              </ProtectedRoute>
+            }
+          >
             <Route index element={<StudentDashboard />} />
             <Route path="profile" element={<Profile />} />
             <Route path="project" element={<Project />} />
@@ -56,8 +50,15 @@ function App() {
             <Route path="activity" element={<Activity />} />
           </Route>
 
-          {/* ✅ Lecturer */}
-          <Route path="/lecturer" element={<DashboardLayout role="lecturer" />}>
+          {/* Lecturer */}
+          <Route
+            path="/lecturer"
+            element={
+              <ProtectedRoute role="lecturer">
+                <DashboardLayout role="lecturer" />
+              </ProtectedRoute>
+            }
+          >
             <Route index element={<LecturerDashboard />} />
             <Route path="profile" element={<Profile />} />
             <Route path="mahasiswa-bimbingan" element={<MahasiswaBimbingan />} />
@@ -66,26 +67,47 @@ function App() {
             <Route path="update-bimbingan" element={<UpdateBimbingan />} />
           </Route>
 
-          {/* ✅ Prodi */}
-          <Route path="/prodi" element={<DashboardLayout role="prodi" />}>
+          {/* Prodi */}
+          <Route
+            path="/prodi"
+            element={
+              <ProtectedRoute role="prodi">
+                <DashboardLayout role="prodi" />
+              </ProtectedRoute>
+            }
+          >
             <Route index element={<ProdiDashboard />} />
             <Route path="profile" element={<Profile />} />
             <Route path="pemetaan-talenta" element={<PemetaanTalenta />} />
           </Route>
 
-          {/* ✅ Industry */}
-          <Route path="/industry" element={<DashboardLayout role="industry" />}>
+          {/* Industry */}
+          <Route
+            path="/industry"
+            element={
+              <ProtectedRoute role="industry">
+                <DashboardLayout role="industry" />
+              </ProtectedRoute>
+            }
+          >
             <Route index element={<IndustryDashboard />} />
             <Route path="profile" element={<Profile />} />
           </Route>
 
-          {/* ✅ Admin */}
-          <Route path="/admin" element={<DashboardLayout role="admin" />}>
+          {/* Admin */}
+          <Route
+            path="/admin"
+            element={
+              <ProtectedRoute role="admin">
+                <DashboardLayout role="admin" />
+              </ProtectedRoute>
+            }
+          >
             <Route index element={<AdminDashboard />} />
             <Route path="profile" element={<Profile />} />
           </Route>
 
-          {/* ✅ Fallback */}
+          {/* Fallback */}
           <Route path="*" element={<NotFound />} />
         </Routes>
       </Router>

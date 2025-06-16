@@ -10,18 +10,12 @@ const Login: React.FC = () => {
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
-  const { login, currentUser } = useAuth(); // 👈 pastikan context return currentUser
+  const { login, currentUser } = useAuth();
   const navigate = useNavigate();
 
-  // ✅ Auto redirect jika sudah login
   useEffect(() => {
-    if (currentUser?.email) {
-      const userEmail = currentUser.email;
-      if (userEmail.includes('student')) navigate('/student');
-      else if (userEmail.includes('lecturer')) navigate('/lecturer');
-      else if (userEmail.includes('prodi')) navigate('/prodi');
-      else if (userEmail.includes('industry')) navigate('/industry');
-      else if (userEmail.includes('admin')) navigate('/admin');
+    if (currentUser?.role) {
+      navigate(`/${currentUser.role}`);
     }
   }, [currentUser, navigate]);
 
@@ -32,11 +26,6 @@ const Login: React.FC = () => {
 
     try {
       await login(email, password);
-      if (email.includes('student')) navigate('/student');
-      else if (email.includes('lecturer')) navigate('/lecturer');
-      else if (email.includes('prodi')) navigate('/prodi');
-      else if (email.includes('industry')) navigate('/industry');
-      else if (email.includes('admin')) navigate('/admin');
     } catch {
       setError('Invalid email or password');
     } finally {

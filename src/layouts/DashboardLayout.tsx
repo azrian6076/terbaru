@@ -9,21 +9,20 @@ interface DashboardLayoutProps {
 }
 
 const DashboardLayout: React.FC<DashboardLayoutProps> = ({ role }) => {
-  const { user, isAuthenticated } = useAuth();
+  const { currentUser, token } = useAuth();
   const navigate = useNavigate();
 
   useEffect(() => {
-    if (!isAuthenticated) {
+    if (!token) {
       navigate('/login');
       return;
     }
-    if (user?.role !== role) {
-      navigate(`/${user?.role}`);
+    if (currentUser?.role !== role) {
+      navigate(`/${currentUser?.role}`);
     }
-  }, [isAuthenticated, user, navigate, role]);
+  }, [token, currentUser, navigate, role]);
 
-  // Selalu render layout jika sudah otentikasi
-  return isAuthenticated ? (
+  return token ? (
     <div className="flex h-screen bg-gray-100">
       <Sidebar role={role} />
       <div className="flex flex-col flex-1 overflow-hidden">

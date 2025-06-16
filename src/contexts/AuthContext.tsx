@@ -1,118 +1,67 @@
-import React, { createContext, useState, useContext, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import React, { createContext, useContext, useEffect, useState } from 'react';
 
 interface User {
   id: string;
-  name: string;
+  username: string;
   email: string;
-  role: 'student' | 'lecturer' | 'prodi' | 'industry' | 'admin';
+  role: string;
   avatar?: string;
 }
 
 interface AuthContextType {
-  user: User | null;
-  isAuthenticated: boolean;
+  currentUser: User | null;
+  token: string | null;
+  isLoading: boolean;
   login: (email: string, password: string) => Promise<void>;
   logout: () => void;
 }
 
-const AuthContext = createContext<AuthContextType | undefined>(undefined);
+const AuthContext = createContext<AuthContextType>({} as AuthContextType);
 
-export const useAuth = () => {
-  const context = useContext(AuthContext);
-  if (!context) {
-    throw new Error('useAuth must be used within an AuthProvider');
-  }
-  return context;
-};
+export const useAuth = () => useContext(AuthContext);
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [user, setUser] = useState<User | null>(null);
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
-  
-  // Mock login function - would connect to backend in production
-  const login = async (email: string, password: string) => {
-    // Simulate API call
-    try {
-      // This would be replaced with actual API call in production
-      const mockUsers = {
-        'student@example.com': { 
-          id: '1', 
-          name: 'John Student', 
-          email: 'student@example.com', 
-          role: 'student',
-          avatar: 'https://images.pexels.com/photos/614810/pexels-photo-614810.jpeg'
-        },
-        'lecturer@example.com': { 
-          id: '2', 
-          name: 'Dr. Jane Lecturer', 
-          email: 'lecturer@example.com', 
-          role: 'lecturer',
-          avatar: 'https://images.pexels.com/photos/1181686/pexels-photo-1181686.jpeg'
-        },
-        'prodi@example.com': { 
-          id: '3', 
-          name: 'Prodi Admin', 
-          email: 'prodi@example.com', 
-          role: 'prodi',
-          avatar: 'https://images.pexels.com/photos/2379004/pexels-photo-2379004.jpeg'
-        },
-        'industry@example.com': { 
-          id: '4', 
-          name: 'Industry Partner', 
-          email: 'industry@example.com', 
-          role: 'industry',
-          avatar: 'https://images.pexels.com/photos/3184291/pexels-photo-3184291.jpeg'
-        },
-        'admin@example.com': { 
-          id: '5', 
-          name: 'System Admin', 
-          email: 'admin@example.com', 
-          role: 'admin',
-          avatar: 'https://images.pexels.com/photos/3778603/pexels-photo-3778603.jpeg'
-        }
-      };
-
-      // Check if user exists
-      if (mockUsers[email] && password === 'password123') {
-        const userData = mockUsers[email] as User;
-        
-        // Save user to local storage
-        localStorage.setItem('user', JSON.stringify(userData));
-        localStorage.setItem('isAuthenticated', 'true');
-        
-        // Update state
-        setUser(userData);
-        setIsAuthenticated(true);
-        
-        return;
-      }
-      
-      throw new Error('Invalid email or password');
-    } catch (error) {
-      throw error;
-    }
-  };
-
-  const logout = () => {
-    localStorage.removeItem('user');
-    localStorage.removeItem('isAuthenticated');
-    setUser(null);
-    setIsAuthenticated(false);
-  };
+  const [currentUser, setCurrentUser] = useState<User | null>(null);
+  const [token, setToken] = useState<string | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
     const storedUser = localStorage.getItem('user');
-    const storedIsAuthenticated = localStorage.getItem('isAuthenticated');
-    
-    if (storedUser && storedIsAuthenticated === 'true') {
-      setUser(JSON.parse(storedUser));
-      setIsAuthenticated(true);
+    const storedToken = localStorage.getItem('token');
+
+    if (storedUser && storedToken) {
+      setCurrentUser(JSON.parse(storedUser));
+      setToken(storedToken);
     }
+
+    setIsLoading(false);
   }, []);
 
+  const login = async (email: string, password: string) => {
+    const res = await fetch('http://localhost:5000/api/login', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email, password }),
+    });
+
+    if (!res.ok) throw new Error('Login gagal');
+
+    const { token, user } = await res.json();
+    localStorage.setItem('token', token);
+    localStorage.setItem('user', JSON.stringify(user));
+    setToken(token);
+    setCurrentUser(user);
+  };
+
+  const logout = () => {
+    localStorage.removeItem('token');
+    localStorage.removeItem('user');
+    setCurrentUser(null);
+    setToken(null);
+  };
+
   return (
-    <AuthContext.Provider value={{ user, isAuthenticated, login, logout }}>
+    <AuthContext.Provider value={{ currentUser, token, isLoading, login, logout }}>
       {children}
     </AuthContext.Provider>
   );
